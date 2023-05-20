@@ -243,13 +243,13 @@ const createServer = function(options) {
                 let speedModifier;
                 if (event.l_shift || event.r_shift) {
                     
-                    speedModifier = 0.5
+                    speedModifier = 0.05
 
                     if (event.l_alt || event.r_alt) {
-                        speedModifier *= 0.1
+                        speedModifier *= 3
                     }
                     if (event.l_control || event.r_control) {
-                        speedModifier *= 3
+                        speedModifier *= 10
                     }
 
                     if (axis === axes.Z) {
