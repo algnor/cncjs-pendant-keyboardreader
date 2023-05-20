@@ -218,6 +218,14 @@ const createServer = function(options) {
                     axis = axes.Y;
                     moveDirection = direction.negative;
                     break;
+                case 75: // shift + Page down = jog Z+ large step/speed
+                    axis = axes.Z;
+                    moveDirection = direction.positive;
+                    break;
+                case 78: // shift + Page up = jog Z- large step/speed
+                    axis = axes.Z;
+                    moveDirection = direction.negative;
+                    break;
                 case 12: // shift + I = jog Z+ large step/speed
                     axis = axes.Z;
                     moveDirection = direction.positive;
