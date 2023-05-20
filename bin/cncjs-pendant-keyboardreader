@@ -106,10 +106,12 @@ const store = {
     }
 };
 
+let lastKey = null;
+
 const createServer = function(options) {
     serverMain(options, function(err, socket, config) {
         if (err) {
-            console.error(err)
+            console.error(err);
             return
         }
 
@@ -168,8 +170,9 @@ const createServer = function(options) {
 
         device.on("data", function(data) {
             let recv = data.toJSON().data;
-            recv.shift();
+            console.log("RECV: ", recv)
             const bits = recv.shift();
+            recv.shift()
             const event = {
                 l_control: (bits & 1) !== 0 && bits <= 128,
                 l_shift: (bits & 2) !== 0 && bits <= 128,
@@ -180,19 +183,20 @@ const createServer = function(options) {
                 r_alt: (bits & 64) !== 0 && bits <= 128,
                 r_meta: (bits & 128) !== 0 && bits <= 128
             };
-            //console.log(bits);
+            console.log("BITS: ", bits);
             event.key = recv.shift();
             if (event.key == 0 && bits > 128) {
                 event.key = bits;
             }
-            processEvent(event);
+            processEvent(event, lastKey);
+            lastKey = event.key;
         });
 
-        const processEvent = function(event) {
+        const processEvent = function(event, lastKey) {
             let axis;
             let moveDirection;
 
-            if ( smoothJogging && !(event.l_shift || event.r_shift)) {
+            if ( smoothJogging && ( !(event.key) || (lastKey !== event.key)) ) {
                 stopSmoothJog();
                 return;
             }
@@ -230,11 +234,14 @@ const createServer = function(options) {
             if (axis != null && moveDirection != null) {
                 let speedModifier;
                 if (event.l_shift || event.r_shift) {
+                    
+                    speedModifier = 0.5
 
+                    if (event.l_alt || event.r_alt) {
+                        speedModifier *= 0.1
+                    }
                     if (event.l_control || event.r_control) {
-                        speedModifier = 1;
-                    } else {
-                        speedModifier = 0.5;
+                        speedModifier *= 3
                     }
 
                     if (axis === axes.Z) {
@@ -245,6 +252,7 @@ const createServer = function(options) {
                     let jogStep = SMOOTHJOG_JOGSTEP * speedModifier;
 
                     startSmoothJog(axis, moveDirection, jogStep, jogSpeed);
+
                 } else {
                     let jogSpeed;
                     if (event.l_control || event.r_control) {
